@@ -1,6 +1,6 @@
 import os 
 
-def getFilesInDirectory(dir):
+def getFilesInDirectory(dir: str):
     files = []
     for dirname, dirnames, filenames in os.walk(dir):
         for filename in filenames:
