@@ -10,10 +10,8 @@
 #include "constants.h"
 #include <random>
 #include <cstring>
+
 using namespace std;
-
-
-
 
 void define_block(uint8_t*, uint32_t*, int size);
 
@@ -115,7 +113,7 @@ int main(int argc, char* argv[]){
         set_subkeys_Kr_Km(i, key, subkeys_Kr_Km);
     }
 
-	//При расшифровании IV читается из зашифрованного файла, если режим шифрование, то IV генерируется
+	//При расшифровании IV читается из зашифрованного файла, если режим шифрования, то IV генерируется
     if (flag){
         in.read((char*)buffer_IV, 16);
         define_block(buffer_IV, gamma, sizeof(gamma));
