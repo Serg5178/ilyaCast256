@@ -9,6 +9,7 @@
 #include <functional>
 #include "constants.h"
 #include <random>
+#include <cstring>
 using namespace std;
 
 
@@ -52,8 +53,6 @@ void test_control(uint32_t subkeys[2][8][24], uint32_t* key, uint32_t subkeys_Kr
 // argv 3 = пароль (ключ)
 // argv 4 = как назвать расшифрованный/зашифрованный файл
 
-
-
 int main(int argc, char* argv[]){
     uint32_t start_time = clock();
     uint32_t key[8] = {0}; // изначальный ключ
@@ -94,21 +93,18 @@ int main(int argc, char* argv[]){
 
     }
 
-
-    
-
     // копирование ключа
     for (int i = 0; i < sizeof(key); ++i){
         temp[i] = key[i];
     }
-    // Чтение IV из зашифрованного файла,
+	//Открытие файла на чтение, если открыть не удалось выходим с ошибкой
     ifstream in(argv[2], ios::binary);
     if(!in.is_open()){
         cout << "Not such file in this directory";
         exit(1);
     }
-    //     // открываем выходной файл
-    ofstream out;          // поток для записи
+    
+	ofstream out;          // поток для записи
     out.open(argv[4], ios::binary); // окрываем файл для записи
 
 
@@ -119,6 +115,7 @@ int main(int argc, char* argv[]){
         set_subkeys_Kr_Km(i, key, subkeys_Kr_Km);
     }
 
+	//При расшифровании IV читается из зашифрованного файла, если режим шифрование, то IV генерируется
     if (flag){
         in.read((char*)buffer_IV, 16);
         define_block(buffer_IV, gamma, sizeof(gamma));
@@ -129,11 +126,12 @@ int main(int argc, char* argv[]){
            out << buffer_IV[i];
         }
     }
+
     define_block(buffer_IV, gamma, sizeof(gamma));
+	
+	//Шифрование блоками по 16 байт, до конца файла
     for (size; size > 0; size-=16 ){
-        for (int i = 0; i < 16; ++i){
-            buffer_text_file[i] = 0;
-        }
+		memset(buffer_text_file, 0, 16); 
 
         in.read((char*)buffer_text_file, 16);
 
@@ -206,7 +204,6 @@ int Interface(char *argv[]){
 
 
 void setVectorInit(uint32_t* vector_init, uint8_t *char_VI){
-    // ofstream out;
     random_device rnd;
     uniform_int_distribution<uint32_t> distr;
     for (int i = 0; i < 4; i++){
@@ -234,7 +231,7 @@ void setKey(char* str, uint32_t* key_blocks){
 }
 
 long filesize(char* file) {
-    ifstream stream(file, ios_base::binary);
+     ifstream stream(file, ios_base::binary);
      long cur_pos, length;
      cur_pos = stream.tellg();
      stream.seekg(0,ios_base::end);
@@ -273,10 +270,6 @@ uint32_t f1(uint32_t data, uint32_t mask_key, uint32_t shift_key){
     data = (data>>(32 - shift_key)) | (data << shift_key);
     uint8_t parts[4] = {0};
     partition(data, parts);
-    // for(int i = 0; i < 4; i++){
-    //     cout << (uint8_t)parts[i];
-    // }
-    // cout << endl;
     data = ((S[0][parts[0]] ^ S[1][parts[1]])- S[2][parts[2]]) + S[3][parts[3]];
     return data;
 }
