@@ -101,6 +101,7 @@ int main(int argc, char* argv[]){
     for (int i = 0; i < sizeof(key); ++i){
         temp[i] = key[i];
     }
+    // Чтение IV из зашифрованного файла,
     ifstream in(argv[2], ios::binary);
     if(!in.is_open()){
         cout << "Not such file in this directory";
