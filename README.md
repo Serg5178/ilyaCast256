@@ -10,3 +10,17 @@ CBC уже есть.
 * [ ] Разобраться в коде, написать комментарии
 * [ ] Написать GUI
 * [ ] Написать шифрование всех файлов в папке
+
+## Пример работы:
+Шифрование:
+
+```
+./a.out -e asd.txt a 'aPdSgVkYp3s5v8y/B?E(H+MbQeThWmZq' test.txt
+```
+
+Расшифрование:
+
+```
+./a.out -d test.txt IV.txt 'aPdSgVkYp3s5v8y/B?E(H+MbQeThWmZq' asd.txt
+
+```

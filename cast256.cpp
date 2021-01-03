@@ -68,7 +68,8 @@ int main(int argc, char* argv[]){
     uint32_t subkeys[2][8][24] = {0}; // подключи Tr, Tm
     uint8_t buffer_IV[16] = {0}; // хранение гаммы в массиве байт для записи в файл
     uint32_t gamma[4] = {0}; // хранение гаммы для операций xor и шифрования
-    from_hex_to_string(key, argv);
+    cout << "gg\n" ;  
+	from_hex_to_string(key, argv);
     uint32_t temp[8] = {0}; // переменная для сохранения первоначального вида ключа
     int size;
     bool flag = 0; // 0 - encrypt; 1 - decrypt
@@ -181,7 +182,7 @@ void from_hex_to_string(uint32_t* key, char *argv[]){
 
   for (int i = 0; i < 8; i++){
     try{
-        if (argv[3][8*i] == 0){
+        if (argv[4][8*i] == 0){
             throw 1;
         }
        
