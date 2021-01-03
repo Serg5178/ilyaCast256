@@ -7,5 +7,5 @@ def getFilesInDirectory(dir: str):
             files.append(os.path.join(dirname, filename))
     return files
 
-directory = './'
+directory = str(input("Укажите путь\n"))
 print(getFilesInDirectory(directory))

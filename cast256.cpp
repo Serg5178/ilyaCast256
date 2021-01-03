@@ -48,8 +48,9 @@ void from_hex_to_string(uint32_t*, char *argv[]);
 void test_control(uint32_t subkeys[2][8][24], uint32_t* key, uint32_t subkeys_Kr_Km[2][4][12]);
 
 // argv 2 = что зашифровать/расшифровать
-// argv 3 = пароль (ключ)
-// argv 4 = как назвать расшифрованный/зашифрованный файл
+// argv 3 = IV
+// argv 4 = пароль (ключ)
+// argv 5 = как назвать расшифрованный/зашифрованный файл
 
 int main(int argc, char* argv[]){
     uint32_t start_time = clock();
@@ -67,7 +68,6 @@ int main(int argc, char* argv[]){
     uint32_t subkeys[2][8][24] = {0}; // подключи Tr, Tm
     uint8_t buffer_IV[16] = {0}; // хранение гаммы в массиве байт для записи в файл
     uint32_t gamma[4] = {0}; // хранение гаммы для операций xor и шифрования
-    
     from_hex_to_string(key, argv);
     uint32_t temp[8] = {0}; // переменная для сохранения первоначального вида ключа
     int size;
@@ -101,9 +101,15 @@ int main(int argc, char* argv[]){
         cout << "Not such file in this directory";
         exit(1);
     }
-    
+	
+	bool IV_open = true; 
+	ifstream IVin(argv[3], ios::binary); 
+	if(!IVin.is_open()){
+		IV_open = false; 
+	}
+
 	ofstream out;          // поток для записи
-    out.open(argv[4], ios::binary); // окрываем файл для записи
+    out.open(argv[5], ios::binary); // окрываем файл для записи
 
 
     set_subkeys_Tr_Tm(subkeys);
@@ -113,16 +119,30 @@ int main(int argc, char* argv[]){
         set_subkeys_Kr_Km(i, key, subkeys_Kr_Km);
     }
 
-	//При расшифровании IV читается из зашифрованного файла, если режим шифрования, то IV генерируется
+	/*
+	 При расшифровании IV читается файла, если режим шифрования, то IV пытается прочитатся из файла,
+	 если файла нет, то IV генерируется и записывается в файл IV.txt
+	*/ 
     if (flag){
-        in.read((char*)buffer_IV, 16);
+		if(!IV_open){
+			cout << "Error open IV file\n"; 
+			exit(0);
+		}
+        IVin.read((char*)buffer_IV, 16);
         define_block(buffer_IV, gamma, sizeof(gamma));
     }
     else{
-        setVectorInit(gamma, buffer_IV); // генерация псевдослучайной последовательности
-        for (int i = 0; i < 16; ++i){
-           out << buffer_IV[i];
-        }
+		if(!IV_open){	
+			setVectorInit(gamma, buffer_IV);// генерация псевдослучайной последовательности
+			ofstream IVout("./IV.txt", ios::binary); 
+			for (int i = 0; i < 16; ++i){
+			   IVout << buffer_IV[i];
+			}
+			IVout.close();
+		} else {
+			IVin.read((char*)buffer_IV, 16);
+			define_block(buffer_IV, gamma, sizeof(gamma));
+		}
     }
 
     define_block(buffer_IV, gamma, sizeof(gamma));
@@ -165,7 +185,7 @@ void from_hex_to_string(uint32_t* key, char *argv[]){
             throw 1;
         }
        
-        parts[i] = string(argv[3], 8*i, 8);
+        parts[i] = string(argv[4], 8*i, 8);
         counter++;
     }
     catch(int a){
