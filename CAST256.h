@@ -1,19 +1,27 @@
 #ifndef __CAST256__
 #define __CAST256__
 
+#include <cstdint>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
 #include <algorithm>
 #include <vector>
-
-#include "cryptomath.h"
-#include "includes.h"
-#include "SymAlg.h"
 #include "CAST_Const.h"
 
-class CAST256 : public SymAlg{
+class CAST256{
+    protected:
+        bool keyset;
     private:
         uint32_t A, B, C, D, a, b, c, d, e, f, g, h;
         std::vector <std::vector <uint8_t> > Kr, Tr;
         std::vector <std::vector <uint32_t> > Km, Tm;
+        template <typename T> T ROR(T x, const uint64_t & n, const uint64_t & bits);
+        template <typename T> T ROL(const T & x, const uint64_t & n, const uint64_t & bits);
+        uint64_t toint(const std::string & s, const int & base);
+        std::string unhexlify(const std::string & in);
+        template <typename T> 
+        std::string makehex(T value, unsigned int size = 2 * sizeof(T), bool caps = false);
         uint32_t F1(const uint32_t Data, const uint32_t Kmi, const uint8_t Kri);
         uint32_t F2(const uint32_t Data, const uint32_t Kmi, const uint8_t Kri);
         uint32_t F3(const uint32_t Data, const uint32_t Kmi, const uint8_t Kri);

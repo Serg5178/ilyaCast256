@@ -1,5 +1,6 @@
 #include "CAST256.h"
 
+static const uint32_t mod32 = 0xffffffffUL;
 uint32_t CAST256::F1(const uint32_t Data, const uint32_t Kmi, const uint8_t Kri){
     uint32_t temp = ROL((Kmi + Data) & mod32, Kri, 32);
     uint8_t Ia = temp >> 24, Ib = (temp >> 16) & 255, Ic = (temp >> 8) & 255, Id = temp & 255;
@@ -16,6 +17,93 @@ uint32_t CAST256::F3(const uint32_t Data, const uint32_t Kmi, const uint8_t Kri)
     uint32_t temp = ROL((Kmi - Data) & mod32, Kri, 32);
     uint8_t Ia = temp >> 24, Ib = (temp >> 16) & 255, Ic = (temp >> 8) & 255, Id = temp & 255;
     return ((((CAST_S1[Ia] + CAST_S2[Ib]) & mod32) ^ CAST_S3[Ic]) - CAST_S4[Id]) & mod32;
+}
+
+uint64_t CAST256::toint(const std::string & s, const int & base){
+    // Changees strings to uint64_t
+    uint64_t value = 0;
+    switch (base){
+        case 2:
+            for(const unsigned char & c : s){
+                value = (value << 1) + (static_cast <uint8_t> (c) - '\x30');
+            }
+            break;
+        case 8:
+            std::stringstream(s) >> std::oct >> value;
+            break;
+        case 10:
+            std::stringstream(s) >> std::dec >> value;
+            break;
+        case 16:
+            std::stringstream(s) >> std::hex >> value;    // Thanks to Oli Charlesworth @ stackoverflow
+            break;
+        case 256:
+            for(const unsigned char & c : s){
+                value = (value << 8) + static_cast <uint8_t> (c);
+            }
+            break;
+        default:
+            std::stringstream s; s << std::dec << base;
+            throw std::runtime_error("Error: toint() undefined for base: " + s.str());
+            break;
+    };
+    return value;
+}
+
+std::string CAST256::unhexlify(const std::string & in){
+    // Reverse hexlify
+    if (in.size() & 1){
+        throw std::runtime_error("Error: input string of odd length.");
+    }
+    std::string out(in.size() >> 1, 0);
+    for(unsigned int x = 0; x < in.size(); x += 2){
+        if (('0' <= in[x]) && (in[x] <= '9')){
+            out[x >> 1] = static_cast <uint8_t> ((in[x] - '0') << 4);
+        }
+        else if(('a' <= in[x]) && (in[x] <= 'f')){
+            out[x >> 1] = static_cast <uint8_t> ((in[x] - 'a' + 10) << 4);
+        }
+        else if(('A' <= in[x]) && (in[x] <= 'F')){
+            out[x >> 1] = static_cast <uint8_t> ((in[x] - 'A' + 10) << 4);
+        }
+        else{
+            throw std::runtime_error("Error: Invalid character found: " + std::string(1, in[x]));
+        }
+        if (('0' <= in[x + 1]) && (in[x + 1] <= '9')){
+            out[x >> 1] |= static_cast <uint8_t> (in[x + 1] - '0');
+        }
+        else if(('a' <= in[x + 1]) && (in[x + 1] <= 'f')){
+            out[x >> 1] |= static_cast <uint8_t> (in[x + 1] - 'a' + 10);
+        }
+        else if(('A' <= in[x + 1]) && (in[x + 1] <= 'F')){
+            out[x >> 1] |= static_cast <uint8_t> (in[x + 1] - 'A' + 10);
+        }
+        else{
+            throw std::runtime_error("Error: Invalid character found: " + std::string(1, in[x + 1]));
+        }
+    }
+    return out;
+}
+
+template <typename T> 
+std::string CAST256::makehex(T value, unsigned int size = 2 * sizeof(T), bool caps = false){
+    if (!size){
+        std::stringstream out;
+        out << std::hex << value;
+        return out.str();
+    }
+
+    std::string out(size, '0');
+    while (value && size){
+        if (caps){
+            out[--size] = "0123456789ABCDEF"[value & 15];
+        }
+        else{
+            out[--size] = "0123456789abcdef"[value & 15];
+        }
+        value >>= 4;
+    }
+    return out;
 }
 
 void CAST256::W(const uint8_t i){
@@ -84,7 +172,7 @@ std::string CAST256::run(const std::string & DATA){
 }
 
 CAST256::CAST256()
-    : SymAlg(),
+    :
       A(0), B(0), C(0), D(0), a(0), b(0), c(0), d(0), e(0), f(0), g (0), h(0),
       Kr(0), Tr(0),
       Km(0), Tm(0)
@@ -94,6 +182,17 @@ CAST256::CAST256(const std::string & KEY)
     : CAST256()
 {
     setkey(KEY);
+}
+
+template <typename T>
+T CAST256::ROR(T x, const uint64_t & n, const uint64_t & bits){
+    static_assert(std::is_integral <T>::value, "Error: Value being rotated should be integral.");
+    return (x >> n) | ((x & ((1ULL << n) - 1)) << (bits - n));
+}
+template <typename T>
+T CAST256::ROL(const T & x, const uint64_t & n, const uint64_t & bits){
+    static_assert(std::is_integral <T>::value, "Error: Value being rotated should be integral.");
+    return ROR(x, bits - n, bits);
 }
 
 void CAST256::setkey(std::string KEY){
