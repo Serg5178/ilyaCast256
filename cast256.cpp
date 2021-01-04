@@ -1,5 +1,5 @@
 #include "CAST256.h"
-
+using namespace std;
 static const uint32_t mod32 = 0xffffffffUL;
 uint32_t CAST256::F1(const uint32_t Data, const uint32_t Kmi, const uint8_t Kri){
     uint32_t temp = ROL((Kmi + Data) & mod32, Kri, 32);
@@ -19,8 +19,7 @@ uint32_t CAST256::F3(const uint32_t Data, const uint32_t Kmi, const uint8_t Kri)
     return ((((CAST_S1[Ia] + CAST_S2[Ib]) & mod32) ^ CAST_S3[Ic]) - CAST_S4[Id]) & mod32;
 }
 
-uint64_t CAST256::toint(const std::string & s, const int & base){
-    // Changees strings to uint64_t
+uint64_t CAST256::toint(const string & s, const int & base){
     uint64_t value = 0;
     switch (base){
         case 2:
@@ -29,13 +28,13 @@ uint64_t CAST256::toint(const std::string & s, const int & base){
             }
             break;
         case 8:
-            std::stringstream(s) >> std::oct >> value;
+            stringstream(s) >> oct >> value;
             break;
         case 10:
-            std::stringstream(s) >> std::dec >> value;
+            stringstream(s) >> dec >> value;
             break;
         case 16:
-            std::stringstream(s) >> std::hex >> value;    // Thanks to Oli Charlesworth @ stackoverflow
+            stringstream(s) >> hex >> value;    // Thanks to Oli Charlesworth @ stackoverflow
             break;
         case 256:
             for(const unsigned char & c : s){
@@ -43,19 +42,19 @@ uint64_t CAST256::toint(const std::string & s, const int & base){
             }
             break;
         default:
-            std::stringstream s; s << std::dec << base;
-            throw std::runtime_error("Error: toint() undefined for base: " + s.str());
+            stringstream s; s << dec << base;
+            throw runtime_error("Error: toint() undefined for base: " + s.str());
             break;
     };
     return value;
 }
 
-std::string CAST256::unhexlify(const std::string & in){
+string CAST256::unhexlify(const string & in){
     // Reverse hexlify
     if (in.size() & 1){
-        throw std::runtime_error("Error: input string of odd length.");
+        throw runtime_error("Error: input string of odd length.");
     }
-    std::string out(in.size() >> 1, 0);
+    string out(in.size() >> 1, 0);
     for(unsigned int x = 0; x < in.size(); x += 2){
         if (('0' <= in[x]) && (in[x] <= '9')){
             out[x >> 1] = static_cast <uint8_t> ((in[x] - '0') << 4);
@@ -67,7 +66,7 @@ std::string CAST256::unhexlify(const std::string & in){
             out[x >> 1] = static_cast <uint8_t> ((in[x] - 'A' + 10) << 4);
         }
         else{
-            throw std::runtime_error("Error: Invalid character found: " + std::string(1, in[x]));
+            throw runtime_error("Error: Invalid character found: " + string(1, in[x]));
         }
         if (('0' <= in[x + 1]) && (in[x + 1] <= '9')){
             out[x >> 1] |= static_cast <uint8_t> (in[x + 1] - '0');
@@ -79,21 +78,21 @@ std::string CAST256::unhexlify(const std::string & in){
             out[x >> 1] |= static_cast <uint8_t> (in[x + 1] - 'A' + 10);
         }
         else{
-            throw std::runtime_error("Error: Invalid character found: " + std::string(1, in[x + 1]));
+            throw runtime_error("Error: Invalid character found: " + string(1, in[x + 1]));
         }
     }
     return out;
 }
 
 template <typename T> 
-std::string CAST256::makehex(T value, unsigned int size = 2 * sizeof(T), bool caps = false){
+string CAST256::makehex(T value, unsigned int size = 2 * sizeof(T), bool caps = false){
     if (!size){
-        std::stringstream out;
-        out << std::hex << value;
+        stringstream out;
+        out << hex << value;
         return out.str();
     }
 
-    std::string out(size, '0');
+    string out(size, '0');
     while (value && size){
         if (caps){
             out[--size] = "0123456789ABCDEF"[value & 15];
@@ -117,8 +116,8 @@ void CAST256::W(const uint8_t i){
     h ^= F2(a, Tm[7][i], Tr[7][i]);
 }
 
-std::vector <uint8_t> CAST256::kr(){
-    std::vector <uint8_t> out;
+vector <uint8_t> CAST256::kr(){
+    vector <uint8_t> out;
     out.push_back(a & 31);
     out.push_back(c & 31);
     out.push_back(e & 31);
@@ -126,8 +125,8 @@ std::vector <uint8_t> CAST256::kr(){
     return out;
 }
 
-std::vector <uint32_t> CAST256::km(){
-    std::vector <uint32_t> out;
+vector <uint32_t> CAST256::km(){
+    vector <uint32_t> out;
     out.push_back(h);
     out.push_back(f);
     out.push_back(d);
@@ -149,13 +148,13 @@ void CAST256::QBAR(const uint8_t & i){
     C ^= F1(D, Km[i][0], Kr[i][0]);
 }
 
-std::string CAST256::run(const std::string & DATA){
+string CAST256::run(const string & DATA){
     if (!keyset){
-        throw std::runtime_error("Error: Key has not been set.");
+        throw runtime_error("Error: Key has not been set.");
     }
 
     if (DATA.size() != 16){
-        throw std::runtime_error("Error: Data must be 128 bits in length.");
+        throw runtime_error("Error: Data must be 128 bits in length.");
     }
 
     A = toint(DATA.substr(0, 4), 256);
@@ -178,7 +177,7 @@ CAST256::CAST256()
       Km(0), Tm(0)
 {}
 
-CAST256::CAST256(const std::string & KEY)
+CAST256::CAST256(const string & KEY)
     : CAST256()
 {
     setkey(KEY);
@@ -186,25 +185,25 @@ CAST256::CAST256(const std::string & KEY)
 
 template <typename T>
 T CAST256::ROR(T x, const uint64_t & n, const uint64_t & bits){
-    static_assert(std::is_integral <T>::value, "Error: Value being rotated should be integral.");
+    static_assert(is_integral <T>::value, "Error: Value being rotated should be integral.");
     return (x >> n) | ((x & ((1ULL << n) - 1)) << (bits - n));
 }
 template <typename T>
 T CAST256::ROL(const T & x, const uint64_t & n, const uint64_t & bits){
-    static_assert(std::is_integral <T>::value, "Error: Value being rotated should be integral.");
+    static_assert(is_integral <T>::value, "Error: Value being rotated should be integral.");
     return ROR(x, bits - n, bits);
 }
 
-void CAST256::setkey(std::string KEY){
+void CAST256::setkey(string KEY){
     if (keyset){
-        throw std::runtime_error("Error: Key has already been set.");
+        throw runtime_error("Error: Key has already been set.");
     }
 
     if ((KEY.size() != 16) && (KEY.size() != 20) && (KEY.size() != 24) && (KEY.size() != 28) && (KEY.size() != 32)){
-        throw std::runtime_error("Error: Key must be 128, 160, 192, 224, or 256 bits in length.");
+        throw runtime_error("Error: Key must be 128, 160, 192, 224, or 256 bits in length.");
     }
 
-    KEY += std::string(32 - KEY.size(), 0);
+    KEY += string(32 - KEY.size(), 0);
     a = toint(KEY.substr(0, 4), 256);
     b = toint(KEY.substr(4, 4), 256);
     c = toint(KEY.substr(8, 4), 256);
@@ -216,8 +215,8 @@ void CAST256::setkey(std::string KEY){
 
     uint32_t Cm = 0x5A827999, Mm = 0x6ED9EBA1, Cr = 19, Mr = 17;
 
-    std::vector <uint8_t> range24_8(24, 0);
-    std::vector <uint32_t> range24_32(24, 0);
+    vector <uint8_t> range24_8(24, 0);
+    vector <uint32_t> range24_32(24, 0);
 
     Tm.push_back(range24_32); Tr.push_back(range24_8);
     for(uint8_t x = 0; x < 8; x++){
@@ -242,16 +241,72 @@ void CAST256::setkey(std::string KEY){
     keyset = true;
 }
 
-std::string CAST256::encrypt(const std::string & DATA){
+string CAST256::encrypt(const string & DATA){
     return run(DATA);
 }
 
-std::string CAST256::decrypt(const std::string & DATA){
-    std::reverse(Kr.begin(), Kr.end());
-    std::reverse(Km.begin(), Km.end());
-    std::string out = run(DATA);
-    std::reverse(Kr.begin(), Kr.end());
-    std::reverse(Km.begin(), Km.end());
+long fileSize(char* file) {
+    ifstream stream(file, ios_base::binary);
+    long cur_pos, length;
+    cur_pos = stream.tellg();
+    stream.seekg(0,ios_base::end);
+    length = stream.tellg();;
+    stream.seekg(0,ios_base::beg);
+    //stream.close();
+    return length;
+}
+
+int CAST256::encryptFile(char* input, char* output){
+    ifstream inputFile(input, ios::binary);
+    ofstream outputFile(output, ios::binary);
+    long size = fileSize(input);
+    char textBuff[17] = {0};  
+    for(size; size > 0; size-=16){
+        memset(textBuff, 0x20, 16);
+        inputFile.read(textBuff, 16);
+        string buff(textBuff, 16);
+        outputFile << encrypt(buff); 
+    }
+    inputFile.close();
+    outputFile.close();
+    return 0; 
+}
+
+int CAST256::decryptFile(char* input, char* output){
+    ifstream inputFile(input, ios::binary);
+    ofstream outputFile(output, ios::binary);
+    long size = fileSize(input);
+    char textBuff[17] = {0};  
+    for(size; size > 0; size-=16){
+        memset(textBuff, 0, 16);
+        inputFile.read(textBuff, 16);
+        string buff(textBuff, 16); 
+        if(size == 16){ 
+            string temp = decrypt(buff);
+            for(int i = temp.length() - 1; i > 0; i--){
+                if((int)temp[i] == ' '){
+                    temp.pop_back();
+                } else {
+                    break;
+                }
+            }
+            outputFile << temp;
+            break;
+        }
+        outputFile << decrypt(buff); 
+    }
+    inputFile.close();
+    outputFile.close();
+    return 0; 
+}
+
+
+string CAST256::decrypt(const string & DATA){
+    reverse(Kr.begin(), Kr.end());
+    reverse(Km.begin(), Km.end());
+    string out = run(DATA);
+    reverse(Kr.begin(), Kr.end());
+    reverse(Km.begin(), Km.end());
     return out;
 }
 

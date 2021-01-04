@@ -6,13 +6,15 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 #include <vector>
+#include <cstring>
 #include "CAST_Const.h"
 
-class CAST256{
-    protected:
-        bool keyset;
+class CAST256{       
     private:
+        bool keyset = false;
         uint32_t A, B, C, D, a, b, c, d, e, f, g, h;
         std::vector <std::vector <uint8_t> > Kr, Tr;
         std::vector <std::vector <uint32_t> > Km, Tm;
@@ -31,11 +33,12 @@ class CAST256{
         void Q(const uint8_t & i);
         void QBAR(const uint8_t & i);
         std::string run(const std::string & data);
-
     public:
         CAST256();
         CAST256(const std::string & KEY);
         void setkey(std::string KEY);
+        int encryptFile(char* input, char* output);
+        int decryptFile(char* input, char* output);
         std::string encrypt(const std::string & DATA);
         std::string decrypt(const std::string & DATA);
         unsigned int blocksize() const;
