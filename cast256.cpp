@@ -257,7 +257,7 @@ string CAST256::encrypt(const string & DATA){
     return run(DATA);
 }
 
-long fileSize(char* file) {
+long CAST256::fileSize(char* file) {
     ifstream stream(file, ios_base::binary);
     long cur_pos, length;
     cur_pos = stream.tellg();
