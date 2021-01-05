@@ -177,10 +177,11 @@ CAST256::CAST256()
       Km(0), Tm(0)
 {}
 
-CAST256::CAST256(const string & KEY)
+CAST256::CAST256(const string & KEY, const string & IV)
     : CAST256()
 {
     setkey(KEY);
+    setIV(IV);
 }
 
 template <typename T>
@@ -241,6 +242,17 @@ void CAST256::setkey(string KEY){
     keyset = true;
 }
 
+void CAST256::setIV(string IV){
+    if (ivset){
+        throw runtime_error("Error: IV has already been set.");
+    }
+    if(IV.length() != 16){
+        throw runtime_error("Error: IV must be 128 bits in length.");
+    }
+    iv = IV; 
+    ivset = true; 
+}
+
 string CAST256::encrypt(const string & DATA){
     return run(DATA);
 }
@@ -252,20 +264,28 @@ long fileSize(char* file) {
     stream.seekg(0,ios_base::end);
     length = stream.tellg();;
     stream.seekg(0,ios_base::beg);
-    //stream.close();
+    stream.close();
     return length;
 }
 
 int CAST256::encryptFile(char* input, char* output){
     ifstream inputFile(input, ios::binary);
+    if(!inputFile.is_open()){
+        throw runtime_error("Error: Not such file in this directory");
+    }
     ofstream outputFile(output, ios::binary);
     long size = fileSize(input);
-    char textBuff[17] = {0};  
+    char textBuff[17] = {0};
+    string tempIV = iv;  
     for(size; size > 0; size-=16){
         memset(textBuff, 0x20, 16);
         inputFile.read(textBuff, 16);
+        for(int i = 0; i < 16; i++){
+            textBuff[i] ^= tempIV[i];
+        }
         string buff(textBuff, 16);
-        outputFile << encrypt(buff); 
+        tempIV = encrypt(buff); 
+        outputFile << tempIV;
     }
     inputFile.close();
     outputFile.close();
@@ -274,26 +294,35 @@ int CAST256::encryptFile(char* input, char* output){
 
 int CAST256::decryptFile(char* input, char* output){
     ifstream inputFile(input, ios::binary);
+    if(!inputFile.is_open()){
+        throw runtime_error("Error: Not such file in this directory");
+    }
     ofstream outputFile(output, ios::binary);
     long size = fileSize(input);
     char textBuff[17] = {0};  
+    string tempIV = iv;
     for(size; size > 0; size-=16){
         memset(textBuff, 0, 16);
         inputFile.read(textBuff, 16);
-        string buff(textBuff, 16); 
+        string buff(textBuff, 16);
+        string temp = buff; 
+        buff = decrypt(buff);
+        for(int i = 0; i < 16; i++){
+            buff[i] = tempIV[i] ^ buff[i];
+        }
         if(size == 16){ 
-            string temp = decrypt(buff);
-            for(int i = temp.length() - 1; i > 0; i--){
-                if((int)temp[i] == ' '){
-                    temp.pop_back();
+            for(int i = buff.length() - 1; i > 0; i--){
+                if((int)buff[i] == ' '){
+                    buff.pop_back();
                 } else {
                     break;
                 }
             }
-            outputFile << temp;
+            outputFile << buff;
             break;
         }
-        outputFile << decrypt(buff); 
+        tempIV = temp; 
+        outputFile << buff;
     }
     inputFile.close();
     outputFile.close();
