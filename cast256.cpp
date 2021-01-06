@@ -84,8 +84,8 @@ string CAST256::unhexlify(const string & in){
     return out;
 }
 
-template <typename T> 
-string CAST256::makehex(T value, unsigned int size = 2 * sizeof(T), bool caps = false){
+string CAST256::makehex(uint64_t value, bool caps){
+    unsigned int size = 8;
     if (!size){
         stringstream out;
         out << hex << value;
@@ -167,7 +167,7 @@ string CAST256::run(const string & DATA){
     for(uint8_t i = 6; i < 12; i++){
         QBAR(i);
     }
-    return unhexlify(makehex(A, 8) + makehex(B, 8) + makehex(C, 8) + makehex(D, 8));
+    return unhexlify(makehex(A, false) + makehex(B, false) + makehex(C, false) + makehex(D, false));
 }
 
 CAST256::CAST256()

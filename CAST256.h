@@ -26,7 +26,7 @@ class CAST256{
         vector <uint32_t> km();
         template <typename T> T ROR(T x, const uint64_t & n, const uint64_t & bits);
         template <typename T> T ROL(const T & x, const uint64_t & n, const uint64_t & bits);
-        template <typename T> string makehex(T value, unsigned int size = 2 * sizeof(T), bool caps = false);
+        string makehex(uint64_t value, bool caps = false);
         uint64_t toint(const string & s, const int & base); 
         uint32_t F1(const uint32_t Data, const uint32_t Kmi, const uint8_t Kri);
         uint32_t F2(const uint32_t Data, const uint32_t Kmi, const uint8_t Kri);
@@ -34,7 +34,7 @@ class CAST256{
         void W(const uint8_t i);
         void Q(const uint8_t & i);
         void QBAR(const uint8_t & i);
-        long CAST256::fileSize(char* file);
+        long fileSize(char* file);
         string unhexlify(const string & in);
         string run(const string & data);
         string encrypt(const string & DATA);
