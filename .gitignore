@@ -1,7 +1,7 @@
 a.out
-asd.text
+asd.txt
 IV.txt
-test.txt
-cast256.cpp
+key.txt
+enc.txt
 .vscode/c_cpp_properties.json
 .vscode/settings.json

@@ -34,7 +34,6 @@ class CAST256{
         void W(const uint8_t i);
         void Q(const uint8_t & i);
         void QBAR(const uint8_t & i);
-        long fileSize(char* file);
         string unhexlify(const string & in);
         string run(const string & data);
         string encrypt(const string & DATA);
@@ -45,8 +44,8 @@ class CAST256{
         CAST256(const string & KEY, const string & IV);
         void setIV(string IV);
         void setkey(string KEY);
-        int encryptFile(char* input, char* output);
-        int decryptFile(char* input, char* output);
+        int encryptFile(char* input, char* output, long size);
+        int decryptFile(char* input, char* output, long shift, long size);
 };
 
 #endif

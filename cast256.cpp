@@ -257,28 +257,16 @@ string CAST256::encrypt(const string & DATA){
     return run(DATA);
 }
 
-long CAST256::fileSize(char* file) {
-    ifstream stream(file, ios_base::binary);
-    long cur_pos, length;
-    cur_pos = stream.tellg();
-    stream.seekg(0,ios_base::end);
-    length = stream.tellg();;
-    stream.seekg(0,ios_base::beg);
-    stream.close();
-    return length;
-}
-
-int CAST256::encryptFile(char* input, char* output){
+int CAST256::encryptFile(char* input, char* output, long size){
     ifstream inputFile(input, ios::binary);
     if(!inputFile.is_open()){
         throw runtime_error("Error: Not such file in this directory");
     }
-    ofstream outputFile(output, ios::binary);
-    long size = fileSize(input);
+    ofstream outputFile(output, ios::binary|ios::app);
     char textBuff[17] = {0};
     string tempIV = iv;  
     for(size; size > 0; size-=16){
-        memset(textBuff, 0x20, 16);
+        memset(textBuff, 0, 16);
         inputFile.read(textBuff, 16);
         for(int i = 0; i < 16; i++){
             textBuff[i] ^= tempIV[i];
@@ -292,13 +280,17 @@ int CAST256::encryptFile(char* input, char* output){
     return 0; 
 }
 
-int CAST256::decryptFile(char* input, char* output){
+int CAST256::decryptFile(char* input, char* output, long shift, long size){
     ifstream inputFile(input, ios::binary);
+    inputFile.seekg(shift);
     if(!inputFile.is_open()){
         throw runtime_error("Error: Not such file in this directory");
     }
+    int trash = size%16; 
+    if(size%16 != 0){
+        size += 16 - size%16;
+    }
     ofstream outputFile(output, ios::binary);
-    long size = fileSize(input);
     char textBuff[17] = {0};  
     string tempIV = iv;
     for(size; size > 0; size-=16){
@@ -311,14 +303,7 @@ int CAST256::decryptFile(char* input, char* output){
             buff[i] = tempIV[i] ^ buff[i];
         }
         if(size == 16){ 
-            for(int i = buff.length() - 1; i > 0; i--){
-                if((int)buff[i] == ' '){
-                    buff.pop_back();
-                } else {
-                    break;
-                }
-            }
-            outputFile << buff;
+            outputFile << buff.substr(0, trash);
             break;
         }
         tempIV = temp; 
