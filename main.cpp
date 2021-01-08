@@ -46,7 +46,7 @@ void generateIV(char* iv){
 
 int main(int argc, char* argv[]){
 	srand(time(NULL));
-	if(argc < 4 && argc > 7){
+	if(argc < 4 || argc > 7){
 		throw runtime_error("Error: wrong arguments\n\t   Example: <programm> -<mod(e/d)> <input file> <key file> <IV file> <output file>");
 	}
 	int interface = Interface(argv);
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]){
 
 		}
 		input.close();
-		if(size.size() == 0 || files.size() == 0){
+		if(size.size() == 0 || files.size() == 0 || size.size() != files.size()){
 			throw runtime_error("Error: wrong file format");
 		}
 		for(auto i : dirs)

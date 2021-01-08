@@ -34,7 +34,7 @@ uint64_t CAST256::toint(const string & s, const int & base){
             stringstream(s) >> dec >> value;
             break;
         case 16:
-            stringstream(s) >> hex >> value;    // Thanks to Oli Charlesworth @ stackoverflow
+            stringstream(s) >> hex >> value;
             break;
         case 256:
             for(const unsigned char & c : s){
@@ -50,7 +50,6 @@ uint64_t CAST256::toint(const string & s, const int & base){
 }
 
 string CAST256::unhexlify(const string & in){
-    // Reverse hexlify
     if (in.size() & 1){
         throw runtime_error("Error: input string of odd length.");
     }
@@ -270,7 +269,7 @@ int CAST256::encryptFile(char* input, char* output, long size){
         inputFile.read(textBuff, 16);
         for(int i = 0; i < 16; i++){
             textBuff[i] ^= tempIV[i];
-        }
+        } 
         string buff(textBuff, 16);
         tempIV = encrypt(buff); 
         outputFile << tempIV;
@@ -286,7 +285,10 @@ int CAST256::decryptFile(char* input, char* output, long shift, long size){
     if(!inputFile.is_open()){
         throw runtime_error("Error: Not such file in this directory");
     }
-    int trash = size%16; 
+    int trash = size%16;
+    if (trash == 0){
+        trash = 16; 
+    } 
     if(size%16 != 0){
         size += 16 - size%16;
     }
